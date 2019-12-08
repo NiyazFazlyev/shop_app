@@ -13,6 +13,7 @@ import 'screens/orders_screen.dart';
 import 'screens/product_detail_screen.dart';
 import 'screens/splash-screen.dart';
 import 'screens/user_products_screen.dart';
+import 'helpers/custom_route.dart';
 
 void main() => runApp(MyApp());
 
@@ -24,43 +25,52 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: Auth()),
         ChangeNotifierProxyProvider<Auth, Products>(
-            builder: (ctx, auth, previousProduct) => Products(
-                auth.token,
-                auth.userId,
-                previousProduct == null ? [] : previousProduct.items)),
+            builder: (ctx, auth, previousProduct) =>
+                Products(
+                    auth.token,
+                    auth.userId,
+                    previousProduct == null ? [] : previousProduct.items)),
         ChangeNotifierProvider.value(value: Cart()),
         ChangeNotifierProxyProvider<Auth, Orders>(
-            builder: (ctx, auth, previousOrders) => Orders(
-                auth.token,
-                auth.userId,
-                previousOrders == null ? [] : previousOrders.orders)),
+            builder: (ctx, auth, previousOrders) =>
+                Orders(
+                    auth.token,
+                    auth.userId,
+                    previousOrders == null ? [] : previousOrders.orders)),
       ],
       child: Consumer<Auth>(
-        builder: (ctx, auth, _) => MaterialApp(
-          title: 'My Shop',
-          theme: ThemeData(
-            primarySwatch: Colors.purple,
-            accentColor: Colors.deepOrange,
-            fontFamily: 'Lato',
-          ),
-          home: auth.isAuth
-              ? ProductsOverviewScreen()
-              : FutureBuilder(
-                  future: auth.tryAutoLogin(),
-                  builder: (ctx, authResultSnapshot) =>
-                      authResultSnapshot.connectionState ==
-                              ConnectionState.waiting
-                          ? SplashScreen()
-                          : AuthScreen(),
-                ),
-          routes: {
-            ProductDetailScreen.routeName: (ctx) => ProductDetailScreen(),
-            CartScreen.routeName: (ctx) => CartScreen(),
-            OrdersScreen.routeName: (ctx) => OrdersScreen(),
-            UserProductsScreen.routeName: (ctx) => UserProductsScreen(),
-            EditProductScreen.routeName: (ctx) => EditProductScreen(),
-          },
-        ),
+        builder: (ctx, auth, _) =>
+            MaterialApp(
+              title: 'My Shop',
+              theme: ThemeData(
+                  primarySwatch: Colors.purple,
+                  accentColor: Colors.deepOrange,
+                  fontFamily: 'Lato',
+                  pageTransitionsTheme: PageTransitionsTheme(
+                      builders: {
+                        TargetPlatform.iOS:CustomPageTransitionBuilder(),
+                        TargetPlatform.android:CustomPageTransitionBuilder(),
+                      }
+                  )
+              ),
+              home: auth.isAuth
+                  ? ProductsOverviewScreen()
+                  : FutureBuilder(
+                future: auth.tryAutoLogin(),
+                builder: (ctx, authResultSnapshot) =>
+                authResultSnapshot.connectionState ==
+                    ConnectionState.waiting
+                    ? SplashScreen()
+                    : AuthScreen(),
+              ),
+              routes: {
+                ProductDetailScreen.routeName: (ctx) => ProductDetailScreen(),
+                CartScreen.routeName: (ctx) => CartScreen(),
+                OrdersScreen.routeName: (ctx) => OrdersScreen(),
+                UserProductsScreen.routeName: (ctx) => UserProductsScreen(),
+                EditProductScreen.routeName: (ctx) => EditProductScreen(),
+              },
+            ),
       ),
     );
   }
